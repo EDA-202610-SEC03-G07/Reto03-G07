@@ -236,12 +236,84 @@ def build_req_4_result(stats):
     }
 
 
-def req_5(catalog):
-    """
-    Retorna el resultado del requerimiento 5
-    """
-    # TODO: Modificar el requerimiento 5
-    pass
+def req_5(catalog, horsepower, delta, n):
+    start_time = get_time()
+
+    horsepower = int(horsepower)
+    delta = int(delta)
+    n = int(n)
+
+    hp_min = horsepower - delta
+    hp_max = horsepower + delta
+
+    arbol = catalog["by_horsepower"]
+
+    mapa_colores = mp.new_map(20)
+    total_vehiculos = 0
+
+    if arbol is not None:
+        vehiculos_rango_hp = rbt.values(arbol, hp_min, hp_max) # saco la lista de vehiculos que estan dentro del rango
+
+        if vehiculos_rango_hp is not None:
+            vehiculos_por_potencia = vehiculos_rango_hp["first"]
+
+            while vehiculos_por_potencia is not None:
+                lista_de_ventas = vehiculos_por_potencia["info"]
+
+                for i in range(al.size(lista_de_ventas)):
+                    vehiculo = al.get_element(lista_de_ventas, i)
+
+                    color = vehiculo["color"]
+                    hp = vehiculo["horsepower"]
+
+                    total_vehiculos += 1
+
+                    info_color = mp.get(mapa_colores, color)
+
+                    if info_color is None:
+                        info_color = {
+                            "color": color,
+                            "total_ventas": 1,
+                            "hp_total": hp,
+                            "hp_promedio": 0}
+                        
+                        mp.put(mapa_colores, color, info_color)
+
+                    else:
+                        info_color["total_ventas"] += 1
+                        info_color["hp_total"] += hp
+                        mp.put(mapa_colores, color, info_color)
+
+                vehiculos_por_potencia = vehiculos_por_potencia["next"]
+
+    lista_colores = al.new_list()
+
+    colores = mp.key_set(mapa_colores)
+
+    for i in range(al.size(colores)):
+        color = al.get_element(colores, i)
+        info_color = mp.get(mapa_colores, color)
+
+        info_color["hp_promedio"] = (info_color["hp_total"] / info_color["total_ventas"])
+
+        al.add_last(lista_colores, info_color)
+
+    al.merge_sort(lista_colores, compare_req_5)
+
+    top_colores = al.new_list()
+
+    limite = n
+    if al.size(lista_colores) < n:
+        limite = al.size(lista_colores)
+
+    for i in range(limite):
+        color_info = al.get_element(lista_colores, i)
+        al.add_last(top_colores, color_info)
+
+    end_time = get_time()
+    delta_time_req = delta_time(start_time, end_time)
+
+    return delta_time_req, total_vehiculos, top_colores
 
 def req_6(catalog):
     """
@@ -451,6 +523,17 @@ def compare_req_4(model_1, model_2):
 
     return model_1["model"] < model_2["model"]
 
+def compare_req_5(color_1, color_2):
+    # 1. Mayor número de ventas primero
+    if color_1["total_ventas"] != color_2["total_ventas"]:
+        return color_1["total_ventas"] > color_2["total_ventas"]
+
+    # 2. Si empatan en ventas, mayor horsepower promedio primero
+    if color_1["hp_promedio"] != color_2["hp_promedio"]:
+        return color_1["hp_promedio"] > color_2["hp_promedio"]
+
+    # 3. Si persiste el empate, color alfabéticamente ascendente
+    return color_1["color"] < color_2["color"]
 
 def get_first_last(my_list, amount):
     total = al.size(my_list)

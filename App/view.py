@@ -214,12 +214,55 @@ def print_req_4(control, year, n):
     
 
 
-def print_req_5(control):
-    """
-        Función que imprime la solución del Requerimiento 5 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 5
-    pass
+def print_req_5(control,horsepower,delta,n):
+    delta_time, total_vehiculos, top_colores=logic.req_5(control,horsepower, delta, n)
+    print("\n" + "="*70)
+    print("REQUERIMIENTO 5")
+    print("="*70)
+
+    resumen = [
+        ["Horsepower de referencia", f"{horsepower} HP"],
+        ["Delta", f"{delta} HP"],
+        ["Rango de horsepower", f"{horsepower - delta} HP - {horsepower + delta} HP"],
+        ["N solicitado", n],
+        ["Total de vehículos encontrados", total_vehiculos],
+        ["Tiempo de ejecución (ms)", f"{delta_time:.2f}"]
+    ]
+
+    print(tabulate(
+        resumen,
+        headers=["Métrica", "Valor"],
+        tablefmt="rounded_grid"
+    ))
+
+    if total_vehiculos == 0 or al.size(top_colores) == 0:
+        print("\nNo se encontraron vehículos dentro del rango indicado.")
+        return
+
+    tabla = []
+
+    for i in range(al.size(top_colores)):
+        color_info = al.get_element(top_colores, i)
+
+        tabla.append([
+            color_info["color"],
+            color_info["total_ventas"],
+            f'{color_info["hp_promedio"]:.2f} HP'
+        ])
+
+    print("\n" + "="*70)
+    print("TOP N DE COLORES CON MÁS VEHÍCULOS VENDIDOS")
+    print("="*70)
+
+    print(tabulate(
+        tabla,
+        headers=[
+            "Color",
+            "Vehículos vendidos",
+            "Horsepower promedio"
+        ],
+        tablefmt="rounded_grid"
+    ))
 
 
 def print_req_6(control):
@@ -266,7 +309,11 @@ def main():
             print_req_4(control, year, n)
 
         elif int(inputs) == 5:
-            print_req_5(control)
+            horsepower=int(input("ingrese la potencia (hp) que desea consultar: "))
+            delta=int(input("ingrese el valor de delta con el que desea trabajar: "))
+            n=int(input("ingrese el numero n de datos que desea conocer: "))
+            print_req_5(control,horsepower,delta,n)
+            
 
         elif int(inputs) == 6:
             print_req_6(control)
