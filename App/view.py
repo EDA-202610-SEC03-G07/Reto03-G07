@@ -118,13 +118,41 @@ def print_req_1(control, model, min_price, max_price):
     ))
 
 
-def print_req_2(control):
+def print_req_2(control, combustible, hp_min, hp_max):
     """
         Función que imprime la solución del Requerimiento 2 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 2
-    pass
 
+    (delta, total, avg_price, avg_hp, shown_sales) = logic.req_2(control, combustible, hp_min, hp_max)
+
+    summary = [
+        ["Tipo de combustible consultado", combustible],
+        ["Rango de horsepower", f"{hp_min:,.0f} HP - {hp_max:,.0f} HP"],
+        ["Total de unidades vendidas", total],
+        ["Tiempo de ejecucion (ms)", f"{delta:.2f}"],
+        ["Precio promedio (USD)", f"${avg_price:,.2f}"],
+        ["Horsepower promedio", f"{avg_hp:,.2f} HP"],
+    ]
+
+    print("\n" + "=" * 70)
+    print("                 REQUERIMIENTO 2")
+    print("=" * 70)
+    print(tabulate(
+        summary,
+        headers=["Metrica", "Valor"],
+        tablefmt="rounded_outline",
+        colalign=("left", "right")
+    ))
+
+    print("\n" + "=" * 70)
+    print("       VENTAS FILTRADAS POR COMBUSTIBLE Y RANGO DE HP")
+    print("=" * 70)
+    print(tabulate(
+        sales_to_rows(shown_sales),
+        headers=sales_headers(),
+        tablefmt="rounded_outline",
+        colalign=("left", "right", "left", "left", "right", "right", "center")
+    ))
 
 def print_req_3(control):
     """
@@ -224,8 +252,11 @@ def main():
             print_req_1(control, model, min_price, max_price)
 
         elif int(inputs) == 2:
-            print_req_2(control)
-
+            combustible=input("ingrese el tipo de combustible que desea analizar: ")
+            hp_min=int(input("ingrese la potencia (HP) minima: "))
+            hp_max=int(input("ingrese la potencia (HP) maxima: "))
+            print_req_2(control,combustible,hp_min,hp_max)
+            
         elif int(inputs) == 3:
             print_req_3(control)
 

@@ -129,13 +129,46 @@ def req_1(catalog, model, min_price, max_price):
     
 
 
-def req_2(catalog):
-    """
-    Retorna el resultado del requerimiento 2
-    """
-    # TODO: Modificar el requerimiento 2
-    pass
+def req_2(catalog,combustible,hp_min,hp_max):
+    start_time=get_time()
+    hp_min=int(hp_min)
+    hp_max=int(hp_max)
+    combustible=combustible.upper()
+    arbol=mp.get(catalog["fuel_hp"],combustible) #saco el arbol que tiene las potencias(hp) de cada vehiculo con el combustible indicado
+    vehiculos_objetivo=al.new_list()
+    precio_total=0
+    hp_total=0
+    
+    if arbol is not None:
+        #me interesa revisar enun rango de (hp) dado.
+        vehiculos_rango_hp=rbt.values(arbol,hp_min,hp_max) #saco los valores del arbol que se encuentren entre [hp_min,hp_max]
+        vehiculos_por_potencia=vehiculos_rango_hp["first"] #saco el grupo de vehiculos con esa potencia.
+        
+        while vehiculos_por_potencia is not None:
+            lista_de_ventas=vehiculos_por_potencia["info"]
+            for i in range(al.size(lista_de_ventas)):
+                vehiculo = al.get_element(lista_de_ventas, i)
+                al.add_last(vehiculos_objetivo, vehiculo)
+                precio_total += vehiculo["base_price"]
+                hp_total+= vehiculo["horsepower"]
 
+            vehiculos_por_potencia = vehiculos_por_potencia["next"]
+
+    al.merge_sort(vehiculos_objetivo, compare_req_2)
+    total = al.size(vehiculos_objetivo)
+    precio_promedio = 0
+    hp_promedio=0
+    if total > 0:
+        precio_promedio = precio_total / total
+        hp_promedio= hp_total/ total
+
+    shown_sales = get_first_last(vehiculos_objetivo, 6)
+
+    end_time = get_time()
+    delta = delta_time(start_time, end_time)
+
+    return delta, total, precio_promedio, hp_promedio, shown_sales
+            
 
 def req_3(catalog):
     """
@@ -396,6 +429,17 @@ def compare_req_1(sale_1, sale_2):
         return sale_1["horsepower"] > sale_2["horsepower"]
 
     return sale_1["color"] < sale_2["color"]
+#dsadjewowihcisdhcbljewgdhnkmtghjghjkdaoxguchwepyfheriqqnrbienbñbrr
+
+def compare_req_2(sale_1, sale_2):
+    if sale_1["horsepower"] != sale_2["horsepower"]:
+        return sale_1["horsepower"] < sale_2["horsepower"]
+
+    if sale_1["base_price"] != sale_2["base_price"]:
+        return sale_1["base_price"] < sale_2["base_price"]
+
+    return sale_1["model"] < sale_2["model"]
+
 
 
 def compare_req_4(model_1, model_2):
