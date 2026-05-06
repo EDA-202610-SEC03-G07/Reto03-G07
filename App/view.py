@@ -183,12 +183,15 @@ def print_req_3(control, year, fuel_type, min_price, max_price):
     print("\n" + "=" * 70)
     print("       VENTAS FILTRADAS POR AÑO, COMBUSTIBLE Y RANGO DE PRECIO")
     print("=" * 70)
-    print(tabulate(
-        sales_to_rows(shown_sales),
-        headers=sales_headers(),
-        tablefmt="rounded_outline",
-        colalign=("left", "right", "left", "left", "right", "right", "center")
-    ))
+    if al.size(shown_sales) == 0:
+        print("No se encontraron ventas con los filtros ingresados.")
+    else:
+        print(tabulate(
+            sales_to_rows(shown_sales),
+            headers=sales_headers(),
+            tablefmt="rounded_outline",
+            colalign=("left", "right", "left", "left", "right", "right", "center")
+        ))
 
 
 def print_req_4(control, year, n):
