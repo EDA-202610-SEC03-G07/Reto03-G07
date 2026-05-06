@@ -175,8 +175,34 @@ def req_3(catalog):
     Retorna el resultado del requerimiento 3
     """
     # TODO: Modificar el requerimiento 3
-    pass
+    tiempo_inicio = get_time()
+    lista_filtrada = al.new_list()
+    precio_total = 0
+    tipo_combustible = fuel_type.upper().strip()
+    
+    años = mp.get(catalog["year_fuel_price"], year)
+    if años is not None:
+        combustible_arbol = mp.get(años, tipo_combustible)
+        if combustible_arbol is not None:
+            precio = rbt.values(combustible_arbol, min_price, max_price)
+            actual = precio["first"]
+            while actual is not None:
+                for i in range(al.size(actual["info"])):
+                    venta = al.get_element(actual["info"], i)
+                    al.add_last(lista_filtrada, venta)
+                    precio_total += venta["base_price"]
+                actual = actual["next"]
+                
+    al.merge_sort(lista_filtrada, comparacion_req_3)
+    total = al.size(lista_filtrada)
+    promedio_precio = precio_total / total if total > 0 else 0 
+    
 
+    
+    tiempo_final = get_time()
+    tiempo = tiempo_final - tiempo_inicio
+
+    return tiempo, total, promedio_precio, lista_filtrada
 
 def req_4(catalog, year, n):
     """
@@ -320,7 +346,88 @@ def req_6(catalog):
     Retorna el resultado del requerimiento 6
     """
     # TODO: Modificar el requerimiento 6
-    pass
+    tiempo_inicial = get_time()
+    lista_filtrada = al.new_list()
+    total_modelos = 0
+
+    años_filtrados = rbt.keys(catalog["by_year"], min_year, max_year)
+    año_actual = años_filtrados["first"]
+    while año_actual is not None:
+        lista_ventas = rbt.get(catalog["by_year"], año_actual["info"])
+        for i in range(al.size(lista_ventas)):
+            venta = al.get_element(lista_ventas, i)
+            if min_price <= venta["base_price"] <= max_price:
+                al.add_last(lista_filtrada, venta)
+        año_actual = año_actual["next"]
+
+    ventas_por_modelo = mp.new_map(mp.size(catalog["model_price"]))
+    for i in range(al.size(lista_filtrada)):
+        venta = al.get_element(lista_filtrada, i)
+        if mp.get(ventas_por_modelo, venta["model"]) is None:
+            mp.put(ventas_por_modelo, venta["model"], al.new_list())
+        al.add_last(mp.get(ventas_por_modelo, venta["model"]), venta)
+
+    ranking = pq.new_heap()
+    lista_modelos = mp.key_set(ventas_por_modelo)
+
+    for i in range(al.size(lista_modelos)):
+        modelo = al.get_element(lista_modelos, i)
+        lista_modelo = mp.get(ventas_por_modelo, modelo)
+        cantidad_ventas = al.size(lista_modelo)
+        total_modelos += 1
+
+        suma_precios = 0
+        suma_hp = 0
+        for j in range(cantidad_ventas):
+            venta = al.get_element(lista_modelo, j)
+            suma_precios += venta["base_price"]
+            suma_hp += venta["horsepower"]
+
+        mu = suma_precios / cantidad_ventas
+        promedio_hp = suma_hp / cantidad_ventas
+
+        if mu != 0:
+            suma_desviacion = 0
+            for j in range(cantidad_ventas):
+                venta = al.get_element(lista_modelo, j)
+                suma_desviacion += (venta["base_price"] - mu) ** 2
+            sigma = (suma_desviacion / cantidad_ventas) ** 0.5
+            estabilidad = sigma / mu
+
+            venta_representativa = None
+            diferencia_minima = float("inf")
+            for j in range(cantidad_ventas):
+                venta = al.get_element(lista_modelo, j)
+                diferencia = abs(venta["base_price"] - mu)
+                if diferencia < diferencia_minima:
+                    diferencia_minima = diferencia
+                    venta_representativa = venta
+                elif diferencia == diferencia_minima:
+                    if venta["base_price"] < venta_representativa["base_price"]:
+                        venta_representativa = venta
+                    elif venta["base_price"] == venta_representativa["base_price"]:
+                        if venta["year"] < venta_representativa["year"]:
+                            venta_representativa = venta
+
+            pq.insert(ranking, (estabilidad, sigma, modelo), {
+                "modelo": modelo,
+                "cantidad_ventas": cantidad_ventas,
+                "mu": mu,
+                "sigma": sigma,
+                "estabilidad": estabilidad,
+                "promedio_hp": promedio_hp,
+                "venta_representativa": venta_representativa
+            })
+        else:
+            total_modelos -= 1
+
+    lista_top = al.new_list()
+    for i in range(min(cantidad_m, total_modelos)):
+        al.add_last(lista_top, pq.remove(ranking))
+
+    tiempo_final = get_time()
+    tiempo = tiempo_final - tiempo_inicial
+    return tiempo , total_modelos, lista_top
 
 
 # Funciones para medir tiempos de ejecucion
