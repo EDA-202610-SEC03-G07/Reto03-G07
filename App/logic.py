@@ -169,8 +169,16 @@ def req_2(catalog,combustible,hp_min,hp_max):
 
     return delta, total, precio_promedio, hp_promedio, shown_sales
             
+def comparacion_req_3(venta_1, venta_2):            
+    if venta_1["base_price"] != venta_2["base_price"]:
+        return venta_1["base_price"] < venta_2["base_price"]
 
-def req_3(catalog):
+    if venta_1["year"] != venta_2["year"]:
+        return venta_1["year"] < venta_2["year"]
+
+    return venta_1["model"] < venta_2["model"]
+
+def req_3(catalog, year, fuel_type, min_price, max_price):
     """
     Retorna el resultado del requerimiento 3
     """
@@ -341,7 +349,7 @@ def req_5(catalog, horsepower, delta, n):
 
     return delta_time_req, total_vehiculos, top_colores
 
-def req_6(catalog):
+def req_6(catalog, min_year, max_year, min_price, max_price, cantidad_m):
     """
     Retorna el resultado del requerimiento 6
     """
