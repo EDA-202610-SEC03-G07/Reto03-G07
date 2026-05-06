@@ -154,12 +154,41 @@ def print_req_2(control, combustible, hp_min, hp_max):
         colalign=("left", "right", "left", "left", "right", "right", "center")
     ))
 
-def print_req_3(control):
+def print_req_3(control, year, fuel_type, min_price, max_price):
     """
         Función que imprime la solución del Requerimiento 3 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 3
-    pass
+    (delta, total, avg_price, shown_sales) = logic.req_3(control, year, fuel_type, min_price, max_price)
+
+    summary = [
+        ["Año consultado", year],
+        ["Tipo de combustible", fuel_type],
+        ["Rango de precio", f"${min_price:,.0f} - ${max_price:,.0f}"],
+        ["Total de unidades vendidas", total],
+        ["Tiempo de ejecucion (ms)", f"{delta:.2f}"],
+        ["Precio promedio (USD)", f"${avg_price:,.2f}"],
+    ]
+
+    print("\n" + "=" * 70)
+    print("                 REQUERIMIENTO 3")
+    print("=" * 70)
+    print(tabulate(
+        summary,
+        headers=["Metrica", "Valor"],
+        tablefmt="rounded_outline",
+        colalign=("left", "right")
+    ))
+
+    print("\n" + "=" * 70)
+    print("       VENTAS FILTRADAS POR AÑO, COMBUSTIBLE Y RANGO DE PRECIO")
+    print("=" * 70)
+    print(tabulate(
+        sales_to_rows(shown_sales),
+        headers=sales_headers(),
+        tablefmt="rounded_outline",
+        colalign=("left", "right", "left", "left", "right", "right", "center")
+    ))
 
 
 def print_req_4(control, year, n):
@@ -265,12 +294,51 @@ def print_req_5(control,horsepower,delta,n):
     ))
 
 
-def print_req_6(control):
+def print_req_6(control, min_year, max_year, min_price, max_price, cantidad_m):
     """
         Función que imprime la solución del Requerimiento 6 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 6
-    pass
+    (delta, total_modelos, lista_top) = logic.req_6(control, min_year, max_year, min_price, max_price, cantidad_m)
+
+    summary = [
+        ["Rango de años", f"{min_year} - {max_year}"],
+        ["Rango de precio", f"${min_price:,.0f} - ${max_price:,.0f}"],
+        ["M solicitado", cantidad_m],
+        ["Total de modelos considerados", total_modelos],
+        ["Tiempo de ejecucion (ms)", f"{delta:.2f}"],
+    ]
+
+    print("\n" + "=" * 70)
+    print("                 REQUERIMIENTO 6")
+    print("=" * 70)
+    print(tabulate(summary, headers=["Metrica", "Valor"], tablefmt="rounded_outline", colalign=("left", "right")))
+
+    rows = []
+    ventas_rep = al.new_list()
+    for i in range(al.size(lista_top)):
+        modelo = al.get_element(lista_top, i)
+        rows.append([
+            modelo["modelo"],
+            modelo["cantidad_ventas"],
+            f"${modelo['mu']:,.2f}",
+            f"${modelo['sigma']:,.2f}",
+            f"{modelo['estabilidad']:.4f}",
+            f"{modelo['promedio_hp']:.2f} HP",
+        ])
+        al.add_last(ventas_rep, modelo["venta_representativa"])
+
+    print("\n" + "=" * 70)
+    print("           TOP M MODELOS CON PRECIO MAS ESTABLE")
+    print("=" * 70)
+    print(tabulate(rows, headers=["Modelo", "Ventas", "Promedio Precio (μ)", "Desviacion", "Estabilidad", "HP Promedio"],
+                   tablefmt="rounded_outline"))
+
+    print("\n" + "=" * 70)
+    print("           VENTA REPRESENTATIVA POR MODELO")
+    print("=" * 70)
+    print(tabulate(sales_to_rows(ventas_rep), headers=sales_headers(), tablefmt="rounded_outline",
+                   colalign=("left", "right", "left", "left", "right", "right", "center")))
 
 # Se crea la lógica asociado a la vista
 control = new_logic()
@@ -301,7 +369,11 @@ def main():
             print_req_2(control,combustible,hp_min,hp_max)
             
         elif int(inputs) == 3:
-            print_req_3(control)
+            year = int(input("Ingrese el año a consultar: "))
+            fuel_type = input("Ingrese el tipo de combustible: ").strip()
+            min_price = int(input("Ingrese el precio base minimo: "))
+            max_price = int(input("Ingrese el precio base maximo: "))
+            print_req_3(control, year, fuel_type, min_price, max_price)
 
         elif int(inputs) == 4:
             year = int(input("Ingrese el anio a consultar: "))
@@ -316,7 +388,13 @@ def main():
             
 
         elif int(inputs) == 6:
-            print_req_6(control)
+            min_year = int(input("Ingrese el año minimo: "))
+            max_year = int(input("Ingrese el año maximo: "))
+            min_price = int(input("Ingrese el precio base minimo (USD): "))
+            max_price = int(input("Ingrese el precio base maximo (USD): "))
+            cantidad_m = int(input("Ingrese la cantidad M de modelos a mostrar: "))
+            print_req_6(control, min_year, max_year, min_price, max_price, cantidad_m)
+            
 
         elif int(inputs) == 7:
             working = False
