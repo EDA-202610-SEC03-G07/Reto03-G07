@@ -393,8 +393,8 @@ def main():
         elif int(inputs) == 6:
             min_year = int(input("Ingrese el año minimo: "))
             max_year = int(input("Ingrese el año maximo: "))
-            min_price = int(input("Ingrese el precio base minimo (USD): "))
-            max_price = int(input("Ingrese el precio base maximo (USD): "))
+            min_price = int(input("Ingrese el precio base minimo: "))
+            max_price = int(input("Ingrese el precio base maximo: "))
             cantidad_m = int(input("Ingrese la cantidad M de modelos a mostrar: "))
             print_req_6(control, min_year, max_year, min_price, max_price, cantidad_m)
             
