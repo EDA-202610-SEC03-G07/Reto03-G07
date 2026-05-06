@@ -210,7 +210,7 @@ def req_3(catalog, year, fuel_type, min_price, max_price):
     tiempo_final = get_time()
     tiempo = tiempo_final - tiempo_inicio
 
-    return tiempo, total, promedio_precio, lista_filtrada
+    return tiempo, total, promedio_precio, get_first_last(lista_filtrada, 6)
 
 def req_4(catalog, year, n):
     """
